@@ -1,7 +1,42 @@
 from django.db import models
 from django.contrib.auth.models import (BaseUserManager, AbstractBaseUser)
 
+
 # 채팅, 질문 대답
+
+
+class UserManager(BaseUserManager):
+    def create_user(self, username, name, nickname, email, school, major, grade, edu_type, password=None):
+        if not email:
+            raise ValueError("Users Must Have an email address")
+        user = self.model(
+            email=self.normalize_email(email),  # 이메일의 도메인 파트를 소문자로 바꿔줌
+            username=username,
+            name=name,
+            nickname=nickname,
+            school=school,
+            major=major,
+            grade=grade,
+            edu_type=edu_type
+        )
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, username, email, password):
+        if not email:
+            raise ValueError("Users Must Have an email address")
+        if password is None:
+            raise TypeError("Superusers must have a password.")
+
+        user = self.create_user(username, 'admin', 'admin', email, 'SNU', 'admin', 4, 'M', password)
+        user.is_superuser = True
+        user.is_admin = True
+        user.is_active = True
+        user.save()
+
+        return user
+
 
 USER_TYPE = [('U', 'Under'), ('M', 'Master'), ('D', 'Doctor')]
 
@@ -16,16 +51,36 @@ class User(AbstractBaseUser):
     username = models.CharField(max_length=20, unique=True)
     name = models.CharField(max_length=100)
     nickname = models.CharField(max_length=100)
+    email = models.EmailField(max_length=254)
     # school = models.CharField(choices=)
     school = models.CharField(max_length=100)
     major = models.CharField(max_length=100)
     # major = models.CharField(choices=)
     grade = models.IntegerField()
-    type = models.CharField(choices=USER_TYPE, max_length=10)
+    edu_type = models.CharField(choices=USER_TYPE, max_length=10)
     point = models.IntegerField(default=100)
     answers_count = models.IntegerField(default=0)
 
+    objects = UserManager()
+
     USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['email']
+
+    is_active = models.BooleanField(default=True)
+    is_admin = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.username
+
+    def has_perm(perm, obj=None):
+        return True
+
+    def has_module_perms(self, app_label):
+        return True
+
+    @property
+    def is_staff(self):
+        return self.is_admin
 
 
 class Chat(models.Model):
