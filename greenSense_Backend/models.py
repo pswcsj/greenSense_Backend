@@ -56,7 +56,7 @@ class User(AbstractBaseUser):
     school = models.CharField(max_length=100)
     major = models.CharField(max_length=100)
     # major = models.CharField(choices=)
-    grade = models.IntegerField()
+    grade = models.IntegerField(choices=Grade.choices)
     edu_type = models.CharField(choices=USER_TYPE, max_length=10)
     point = models.IntegerField(default=100)
     answers_count = models.IntegerField(default=0)
@@ -86,6 +86,11 @@ class User(AbstractBaseUser):
 class Chat(models.Model):
     lastMessage = models.TextField()
     createdAt = models.DateTimeField(auto_now=True)
+    teacher = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='answer_chat')
+    student = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='question_chat')
+
+    def __str__(self):
+        return f'teacher: {self.teacher}, student: {self.student}'
 
 
 ATTACHMENT_TYPE = [('IMG', 'Image'), ('VID', 'Video'), ('NONE', 'None')]
@@ -100,6 +105,9 @@ class Message(models.Model):
     attachment_type = models.CharField(choices=ATTACHMENT_TYPE, default='None', max_length=5)
     created_at = models.DateTimeField()
     is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.text
 
 
 class Question(models.Model):
@@ -121,4 +129,4 @@ class Question(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name='question')
     is_end = models.BooleanField(default=False)
     created_at = models.DateTimeField()
-    end_at = models.DateTimeField()
+    end_at = models.DateTimeField(null=True)
