@@ -78,8 +78,14 @@ WSGI_APPLICATION = 'greenSense_Backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        "ENGINE": 'djongo',
+        'CLIENT': {
+            "name": 'greensensedb',
+            "host": 'mongodb+srv://admin:<Gdztnq9giJtY1Ydw>@greensense.vd027ih.mongodb.net/?retryWrites=true&w=majority',
+            "username": 'admin',
+            "password": 'Gdztnq9giJtY1Ydw',
+            "authMechanism": 'SCRAM-SHA-1'
+        }
     }
 }
 
