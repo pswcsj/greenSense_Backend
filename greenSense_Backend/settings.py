@@ -11,10 +11,10 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
@@ -27,6 +27,40 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# authentication: 유저 식별
+# permission: 각 요청에 대한 허용, 거부
+# rest framework에 대한 설정들을 적어줌
+REST_FRAMEWORK = {
+    # 인증된 사용자만 각 요청에 대한 허용, 거부 권한을 줘 접근 허용
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+
+    # API가 호출됐을 때 session이나 token을 인증할 클래스들을 정의합니다.
+    # Django Rest Framework의 APIView에 의해 호출됩니다.
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+    ),
+}
+
+REST_AUTH_REGISTER_SERIALIZERS = {
+    'REGISTER_SERIALIZER': 'greenSense_Backend.serializers.UserRegistrationSerializer'
+}
+
+#로그인 전에 jwt사용하고 싶으면 설정
+
+REST_USE_JWT = True
+# jwt에 대한 설정
+
+#access_token: 이 토큰으로 authentication이 이루어짐
+#refresh_token: access_token을 새로 발급받을 때 사용하는 토큰
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': False, #True로 설정하면 refresh token을 재발급 받을 때 access_token뿐만 아니라 refresh_token도 받음
+    'BLACKLIST_AFTER_ROTATION': True, #rotation 후에 전에 사용한 refresh_tokenㅇㄹ 사용하지 못하게 함
+}
 AUTH_USER_MODEL = "greenSense_Backend.User"
 # Application definition
 
@@ -37,9 +71,36 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'greenSense_Backend',
     'rest_framework',
-    'greenSense_Backend'
+    'rest_framework.authtoken',
+
+    # django-rest-auth
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
+
+    # django-allauth
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+
+
 ]
+
+JWT_AUTH_COOKIE = 'my-app-auth'
+JWT_AUTH_REFRESH_COOKIE = 'my-refresh-token'
+
+#django_site 데이터베이스에 사이트들의 목록이 올라간다. site_id는 현재 만들려는 사이트의 값
+SITE_ID = 1
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -72,7 +133,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'greenSense_Backend.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
@@ -88,7 +148,6 @@ DATABASES = {
         }
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -108,7 +167,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -119,7 +177,6 @@ TIME_ZONE = 'Asia/Seoul'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
